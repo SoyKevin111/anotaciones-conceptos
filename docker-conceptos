@@ -1,0 +1,248 @@
+Anotaciones de Docker:
+
+		virtualización
+Docker			vs		VM
+
+niveles:
+Aplicaciones
+Kernel
+Hardware
+
+
+
+-Docker compose , CLI
+-corre nativo en windows
+
+
+COMANDOS
+
+-lista de imágenes
+docker images
+
+-descargar imagen de node
+docker pull node:18
+
+alternativa: docker pull --platform linux/x86_64 mysql
+
+-Eliminar imagenes
+docker image rm imgen:v1 
+
+
+-crear contenedor
+docker container create --name monguito mongo
+--> devuelve id
+
+docker start --id
+--> devuelve id nuevamente
+
+-listar contenedores activos
+docker ps
+
+-deja de correr el contenedor
+docker stop --id || --names
+
+-todos los contenedores del sistema
+docker ps -a
+
+
+-borrar contenedor
+docker rm NAMES
+
+
+-Mapear puertos
+docker create -p27017L27017
+
+
+docker run -d hola:
+-se encuentra la imagen -> se descarga
+-crea un contenedor
+-inicia el contenedor
+
+
+-COMBINADO
+docker run --name monguito -p27017:20017 -d mongo
+
+
+
+
+--EJEMPLO
+docker pull mongo
+docker create -p27017:27017 --name monguito -e MONGO_INITDB_ROOT_USERNAME=nico -e MONGO_INITDB_ROOT_PASSWORD=password mongo
+
+--ver
+docker ps -a
+--arrancar
+docker start monguito
+
+Nota: hasta aqui se hizo la base de datos de mongo se ejecute en docker y sea accesible a nuestras aplicaciones sin instalar mongodb 
+
+
+--DOCKERIZAR UNA APLICACIÓN
+
+crear archivo: dockerfile
+
+```
+FROM 	node:18
+RUN mkdir -p /home/app --dentro del mismo contenedor
+COPY . /home/app
+EXPOSE 3000
+CMD ["node", "/home/app/index.js"]
+
+```
+
++--Host--------------+
+ |node| <-> |mongodb|
++--------------------+
+
+
+--lista redes de docker
+docker network ls
+
+--crear red
+docker network create miredxd
+-- eliminar
+docker network rm --cualquiered
+
+
+@localhost-->@monguito 
+
+
+--crear imagen en base a un archivo dockerfile
+workspace/app/
+    docker build -t miapp:tag .(ruta)
+
+
+Ojo: crear un contenedor de una imagen enlazado a la red
+docker create -p27017:27017 --name monguito --network miredxd -e MONGO_INITDB_ROOT_USERNAME=nico -e MONGO_INITDB_ROOT_PASSWORD=password mongo
+
+--Asignar el contenedor de la app a la red
+docker create -p3000:3000 --name chanchito --network mired miapp:tag
+
+docker start monguito & chanchito (separado)
+
+--logs
+docker log chanchito
+
+
+
+Pasos resumidos:
+
+-Descargar imagen
+-Crear una red
+-Crear contenedor
+ asignar puertos
+ nombres
+ variables de entorno
+ especificar red
+ indicar img etiqueta
+
+AUTOMATIZAR TODO CON : DOCKER COMPOSE
+
+docker-compose.yml
+
+```
+version: "3.9"
+services:
+  chanchito:
+    build: .
+    ports:
+      - "3000:3000"
+    links:
+      - monguito
+  monguito: 
+    image: mongo
+    ports: 
+      - "27017:27017"
+    environment: 
+      - MONGO_INITDB_ROOT_USERNAME=nico
+      - MONGO_INITDB_ROOT_PASSWORD=password
+    volumes:
+      - mongo-data:/data/db --respalda datos
+      # mysql -> /var/lib/mysql
+      # postgres -> /var/lib/postgresql/data
+
+```
+
+en consola:
+docker compose up --iniciar
+ctrl + c  --detener
+
+-Eliminar todo
+docker compose down
+
+-Volumes: no se eliminan datos de los contenedores como db en desarrollo
+tipos:
+ -anonimo: solo indicas la ruta
+ -host: tu decides la carpeta donde montarlo
+ -nombrados
+
+docker-compose.yml
+...
+volumes:
+   mongo-data:
+   otro-volumen:
+
+```
+
+
+
+MEJORAS
+
+Dockerfile.dev
+FROM 	node:18
+RUN npm i -g nodemon
+RUN mkdir -p /home/app
+
+WORKDIR /home/app
+
+EXPOSE 3000
+CMD ["nodemon", "index.js"]
+
+
+docker-compose-dev.yml
+
+```
+version: "3.9"
+services:
+  chanchito:
+    build: 
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3000:3000"
+    links:
+      - monguito
+    volumes:
+     - .:home/app
+  monguito: 
+    image: mongo
+    ports: 
+      - "27017:27017"
+    environment: 
+      - MONGO_INITDB_ROOT_USERNAME=nico
+      - MONGO_INITDB_ROOT_PASSWORD=password
+    volumes:
+      - mongo-data:/data/db --respalda datos
+      # mysql -> /var/lib/mysql
+      # postgres -> /var/lib/postgresql/data
+  volumes:
+   mongo-data:
+   otro-volumen:
+
+```
+
+ejecutar:
+docker compose -f docker-compose-dev.yml up
+
+
+
+
+
+
+
+
+
+
+
+
+
