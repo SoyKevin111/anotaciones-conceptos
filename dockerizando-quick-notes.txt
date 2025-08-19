@@ -1,0 +1,125 @@
+----------------------------
+
+#IMAGEN MODELO
+FROM eclipse-temurin:17.0.16_8-jdk
+
+#INFO DEL PUERTO DE EJECUCION
+EXPOSE 8080
+
+#CREAMOS EL DIRECTORIO RAIZ DEL CONTENEDOR
+WORKDIR /root
+
+#INDICACION DE ARCHIVOS LOCALES EN EL CONTENEDOR
+COPY ./pom.xml /root
+COPY ./.mvn /root/.mvn
+COPY ./mvnw /root
+
+#SOLO DESCARGA DE DEPENDENCIAS
+RUN ./mvnw dependency:go-offline
+
+#COPIAR CODIGO FUENTE DEL PROYECTO AL CONTENEDOR
+COPY ./src /root/src
+
+#CONSTRUIR LA APLICACION
+RUN ./mvnw clean install -DskipTests
+
+#LEVANTAR LA APLICACION AL INCIAR EL CONTENEDOR
+ENTRYPOINT ["java", "-jar", "/root/target/quick-notes-0.0.1-SNAPSHOT.jar"]
+
+
+ docker build -t "quick-notes-app" .
+
+-------------------------
+
+
+El aplication properties:
+spring.application.name=quick-notes
+spring.jpa.hibernate.ddl-auto = update
+
+spring.datasource.url=jdbc:postgresql://qn-database:5432/quick_notes_docker
+spring.datasource.username=
+spring.datasource.password=
+spring.datasource.driver-class-name=org.postgresql.Driver
+
+#para ver codigo sql en la consola de ejecucion
+spring.jpa.show-sql = true
+spring.mvc.pathmatch.matching-strategy=ant_path_matcher
+
+
+
+
+
+consultar: 
+docker images
+
+
+--Instalar postgres image
+docker pull postgres:17.4
+
+
+--Modificar localhost -> qn-database (despues levantamos ese host)
+ docker rmi quick-notes-app  --eliminar imagen xd
+
+
+
+crear docker-compose.yml
+
+```
+version: "3.9"
+services:
+  quick-notes-app:
+    image: quick-notes-app
+    container_name: quick-notes-container
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 8080:8080
+    networks:
+      - quick-notes-network
+    depends_on:
+      - qn-database
+  qn-database:
+    image: postgres:17.4
+    container_name: qn-database
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123456
+      POSTGRES_DB: quick_notes_docker
+    ports:
+      - 5433:5432
+    networks:
+      - quick-notes-network
+    volumes:
+      - postgres-volume:/var/lib/postgresql/data
+networks:
+  quick-notes-network:
+volumes:
+  postgres-volume:
+
+```
+
+ejecutar: docker compose up
+eliminar: docker-compose down
+
+listar redes: 
+docker network ls
+
+inspeccionar red:
+docker network inspect c4a9b47107eb
+
+
+detener contenedores:
+docker stop <contenedor>
+
+inciiar contenedores:
+docker start <contenedor>
+
+
+
+
+
+
+
+
+
