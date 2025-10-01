@@ -1,0 +1,11 @@
+-- .ENV mas limpio
+
+>.env
+
+SPRING_DATASOURCE_PASSWORD = 123456
+
+>app.properties
+
+spring.config.import = optional:file:.env[properties]
+spring.datasource.url=${SPRING_DATASOURCE_PASSWORD}
+...
