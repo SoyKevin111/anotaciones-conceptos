@@ -1,0 +1,57 @@
+
+-- COMO USAR MAP STRUCK
+
+PersonMapper.java (interface)
+
+@Mapper
+public interface PersonMapper{
+	PersonMapper INSTANCE Mappers.getMapper(PersonMapper.class);
+	PersonDefaultDTO personToPersonDefaultDTO(Person p);
+
+//mapeo personalizado
+@Mapping (source = "id", target = "idDTO")
+@Mapping (source = "name", target = "nameDTO")
+@Mapping (source = "LastName", target = "LastNameDTO")
+@Mapping(source = "email", target = "emailDTO")
+@Mapping(source = "age", target = "ageDTO")
+@Mapping(source = "gender", target = "genderDTO")
+PersonCustomDTO personToPersonCustomDTO(Person person);
+
+
+}
+
+- invocar
+PersonDefaultDTP pdto = PersonMapper.INSTANCE.person...(person)
+
+
+
+https://mapstruct.org/documentation/installation/
+    <dependency>
+        <groupId>org.mapstruct</groupId>
+        <artifactId>mapstruct</artifactId>
+        <version>1.6.3</version>
+    </dependency>
+
+
+<build>
+    <plugins>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <version>3.8.1</version>
+            <configuration>
+                <source>{java version}</source> <!-- depending on your project -->
+                <target>{java version}</target> <!-- depending on your project -->
+                <annotationProcessorPaths>
+                    <path>
+                        <groupId>org.mapstruct</groupId>
+                        <artifactId>mapstruct-processor</artifactId>
+                        <version>${org.mapstruct.version}</version>
+                    </path>
+                    <!-- other annotation processors -->
+                </annotationProcessorPaths>
+            </configuration>
+        </plugin>
+    </plugins>
+</build>
+
