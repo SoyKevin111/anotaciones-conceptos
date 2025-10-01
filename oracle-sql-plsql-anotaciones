@@ -1,0 +1,646 @@
+
+Crear usuario en sql plus
+
+/as sysdba --obtener todo el privilegio
+
+ALTER SESSION SET "_ORACLE_SCRIPT" = TRUE; --permitir editar el script
+
+CREATE USER USUARIO_KEVIN IDENTIFIED BY "SoyKevin#2004"
+DEFAULT TABLESPACE "USERS"
+TEMPORARY TABLESPACE "TEMP";
+
+--creado--
+
+ALTER USER USUARIO_KEVIN QUOTA UNLIMITED ON USERS; --modificar escenario
+
+GRANT CREATE SESSION TO USUARIO_KEVIN; -- permite iniciar sesión
+
+GRANT "RESOURCE" TO USUARIO_KEVIN; -- permite crear tablas, procedimientos, etc.
+
+ALTER USER USUARIO_KEVIN DEFAULT ROLE "RESOURCE"; -- establece ese rol como predeterminado
+
+
+
+//Mas simple XD
+-- Iniciar sesión como SYSDBA
+sqlplus / as sysdba
+
+-- Permitir creación de usuario si estás en una base multitenant (como 18c/19c/21c)
+ALTER SESSION SET "_ORACLE_SCRIPT" = TRUE;
+
+-- Crear el usuario con contraseña
+CREATE USER USUARIO_KEVIN IDENTIFIED BY "SoyKevin#2004";
+
+-- Otorgar privilegios básicos de conexión y desarrollo
+GRANT CONNECT, RESOURCE TO USUARIO_KEVIN;
+
+-- (Opcional) Darle espacio ilimitado en el tablespace USERS, si estás trabajando con tablas
+ALTER USER USUARIO_KEVIN QUOTA UNLIMITED ON USERS;
+
+
+
+
+
+
+
+
+
+
+--Create table
+CREATE TABLE Category (
+    id NUMBER	,
+    description VARCHAR2(30)
+);
+
+CREATE TABLE measures (
+ ID NUMBER(3,0), -- 3 enteros, 0 decimales
+ ABREVIATURA VARCHAR2(3),
+ DESCRIPTION VARCHAR2(20)
+);
+
+CREATE TABLE ARTICLES (
+    ID NUMBER(5,0),
+    DESCRIPTION VARCHAR(50),
+    BRAND VARCHAR(30),
+    ID_ME NUMBER(3,0),
+    ID_CA NUMBER(4,0),
+    CREATED_AT DATE,
+    STOCK DECIMAL(10, 2)
+);
+
+
+--eliminar
+DROP TABLE ARTICLES;
+
+
+--UPDATE
+ALTER TABLE CATEGORY MODIFY (
+    ID NOT NULL
+);
+
+
+--ELIMINAR COLUMNAS
+
+ALTER TABLE TB DROP COLUMN CUALQUIERA;
+ALTER TABLE ARTICLES DROP COLUMN BRAND;
+
+
+--VALOR POR DEFECTO
+ALTER TABLE ARTICLES MODIFY ID NUMBER(6.0) DEFAULT 0;
+
+
+--AGREGAR COLUMNA
+ALTER TABLE ARTICLES ADD BRAND VARCHAR2(30);
+
+
+-- AGREGAR COLUMNAS
+ALTER TABLE ARTICLES ADD(
+    ID_ME NUMBER(3, 0),
+    ID_CA NUMBER(4, 0)
+);
+
+
+
+-- CLAVES PRIMARIAS 
+ALTER TABLE ARTICLES ADD PRIMARY KEY (ID); --ASIGNAR
+
+
+-- CLAVE FORANEA
+ALTER TABLE ARTICLES
+    ADD CONSTRAINT FK_01
+    FOREIGN KEY (ID_ME)
+    REFERENCES MEASURES (ID);
+
+ALTER TABLE ARTICLES
+    ADD CONSTRAINT FK_02
+    FOREIGN KEY (ID_CA)
+    REFERENCES CATEGORY (ID);
+
+-- CON ID AUTOINCREMENTABLE
+CREATE TABLE WAREHOUSE (
+    ID NUMBER(2,0) GENERATED ALWAYS AS IDENTITY,
+    DESCRIPTION VARCHAR2(30)
+);
+
+
+
+-- INSERTAR DATOS
+INSERT INTO MEASURES(ID, ABREVIATURA, DESCRIPTION)
+VALUES(4, 'LTS', 'LITROS');
+
+SELECT * FROM MEASURES;
+
+--
+INSERT 
+    INTO ARTICLES (ID, DESCRIPTION, BRAND, ID_ME, ID_CA)
+    VALUES(1, 'COMPUTADOR', 'LENOVO', 1, 2);
+
+
+
+--ACTUALIZAR DATOS
+UPDATE ARTICLES SET BRAND='SAMSUMG' WHERE ID IN (5,6); --ACTUALIZAR CAMPOS
+
+	--CONCATENACION
+	UPDATE ARTICLES SET DESCRIPTION=CONCAT('* ',DESCRIPTION) WHERE BRAND='HP';
+
+
+
+-- ELIMINAR uno y varios
+
+DELETE FROM ARTICLES WHERE ID IN (5, 6); //BY ID
+DELETE FROM ARTICLES WHERE ID>4;
+DELETE FROM ARTICLES WHERE BRAND='STANDARD';
+
+DELETE FROM MEASURES WHERE ID = 1; -- OJO CON LA INTEGRIDAD DE FK
+
+
+// SEELECT
+
+SELECT * FROM ARTICLES;
+SELECT * FROM ARTICLES WHERE ID_CA= 2;
+
+SELECT ID, 
+ DESCRIPTION,
+ BRAND
+FROM ARTICLES WHERE ID_CA = 2;
+
+
+SELECT * FROM ARTICLES WHERE BRAND IN ('LENOVO','CANON');
+SELECT * FROM ARTICLES WHERE NOT BRAND IN ('LENOVO','CANON');
+
+SELECT * FROM ARTICLES WHERE DESCRIPTION LIKE 'R%';
+
+
+// OPERADORES LOGICOS 
+
+creando tabla
+CREATE TABLE NOTES_STUDENTS(
+ID NUMBER(3,0),
+NAME VARCHAR(50),
+CURSE VARCHAR(3),
+NOTE1 NUMBER(2,0),
+NOTE2 NUMBER(2,0),
+NOTE3 NUMBER(2,0),
+PROMEDIO NUMBER(5, 2));
+
+--INSERTAR DATOS
+INSERT INTO NOTES_STUDENTS VALUES(3, 'FAUNA', 'DAYANNA', 16, 13, 10, 0);
+
+SELECT ID, NAME, NOTE1+NOTE2+NOTE3 FROM NOTES_STUDENTS;
+SELECT ID, NAME, ROUND((NOTE1+NOTE2+NOTE3)/3,2) AS PROMEDIO FROM NOTES_STUDENTS;
+
+
+SE USAN:
+<> DISTINTO
+>
+<
+<=
+>=
+=
+
+
+CONCATENACION = ||
+SELECT ID,
+  NAME || '-' || CURSE AS NAMES_CURSES
+FROM NOTES_STUDENTS;
+
+
+-- OPERADORES LOGICOS
+AND
+OR
+NOT
+()
+
+
+-- FUNCIONES
+- STRING
+- NUMERICAS
+- FECHA-HORA
+
+
+-- TABLA PREDETERMINADA
+SELECT * FROM DUAL;
+
+-- STRING
+SELECT CONCAT('HOLA KEVIN', 'CURSO DB ORCALE') FROM DUAL;
+SELECT CHR(64) FROM DUAL;
+SELECT INITCAP('HOLA KEVIN') FROM DUAL; --TOMA PRIMERA LETRA 
+SELECT UPPER('HOLA KEVIN') FROM DUAL;
+SELECT LOWER('HOLA KEVIN') FROM DUAL;
+
+--RELLENO LPAD(EXPRESION, CANT, TEXTO)
+SELECT LPAD('KEVIN', 11, 'X') FROM DUAL;
+SELECT CONCAT('BOL-', LPAD('1', 5, 0)) FROM DUAL;
+
+--RTRIM Y RTRIM omite espacio en blanco
+select concat(rtrim('victor   '), ltrim('  cesar')) from DUAL;
+
+-- REPLACE
+SELECT REPLACE('WWW.GRUPOXD.NET', 'W', 'L ') FROM DUAL;
+
+-- SUBSTR
+SELECT SUBSTR('CURSO DE DB', 10, 13) FROM DUAL; --INDICES
+LENGTH --CONTAR
+
+-- ROUND
+-- TRUNC --CORTA
+-- MOD(11, 3) 
+
+-- FUNCIONES FECHA Y HORA
+
+SELECT * FROM DUAL;
+
+
+
+
+
+
+
+-- MODIFICAR DATOS EXISTENTES EN UNA TABLA
+update empleados set salario = 500.00 where nombre = 'KEVIN 1';
+
+
+-- ELIMINAR ALGUN REGISTRO
+delete from empleados where nombre in ('nombre 1','nombre 2');
+-- todos solo datos, no tabla
+delete from empleados;
+
+
+
+
+
+--TAREA
+investigar bloques anónimos
+privadas, etc
+
+
+
+
+
+
+
+
+
+
+<<<<<<<<<< PRACTICA DE ORACLE XD>>>>>>>>>>>>>
+
+
+create table book(
+    id number generated always as identity primary key,
+    titulo varchar(50),
+    descripcion varchar(100),
+    isbn varchar(17),
+    best_seller number(1)
+);
+
+insert into book(titulo, descripcion, isbn, best_seller) values('mushoku tensei v3', 'lorem ipsum door dodoria laureus va senadi', '123456789101234-0', 1);
+insert into book(titulo, descripcion, isbn, best_seller) values('mushoku tensei v2', 'lorem ipsum door dodoria laureus va senadi', '123456789101234-1', 0);
+
+select id from autor;
+
+alter table book add fecha_publicacion DATE;
+
+--modificar cada libro
+update book set fecha_publicacion = TO_DATE('20/10/2004','DD/MM/YY') where id = 22; 
+
+--libros mas viejos
+
+select b.titulo as XDDD  from BOOK b
+order by fecha_publicacion asc
+fetch first 1 row only;
+
+
+
+
+-- tabla autor
+create table autor(
+    id number generated always as identity primary key,
+    nombre varchar(30),
+    apodo varchar(50),
+    estado varchar(20),
+    email varchar(100)
+);
+
+--ingresar autores
+insert into autor(nombre, apodo, estado, email) values('kevin 1','soykevin111','ACTIVO','kevin1@gmail.com');
+insert into autor(nombre, apodo, estado, email) values('kevin 2','soykevin222','INACTIVO','kevin2@gmail.com');
+
+-- tabla libro_autor
+create table book_autor(
+    id number generated always as identity primary key,
+    id_autor, --fk
+    id_book, --k
+    constraint fk_autor foreign key (id_autor) references autor(id),
+    constraint fk_book foreign key (id_book) references book(id)
+);
+
+
+--registrar libros con autores
+insert into book_autor(id_autor, id_book) values(1, 21);
+insert into book_autor(id_autor, id_book) values(1, 22);
+insert into book_autor(id_autor, id_book) values(2, 21);
+insert into book_autor(id_autor, id_book) values(2, 22);
+
+
+select * from book_autor;
+
+select b.titulo as titulo_libro, a.nombre as autor
+from book b
+inner join book_autor la on b.id = la.id_book
+inner join autor a on a.id = la.id_autor;
+
+
+
+
+
+
+
+KEVIN_V2
+SoyKevin111
+
+
+
+
+
+
+
+
+
+
+Introduccion PL/ SQL
+
+DECLARE
+  -- Aquí declaras variables
+  v_nombre VARCHAR2(50);
+BEGIN
+  -- Aquí va la lógica
+  v_nombre := 'Kevin';
+  DBMS_OUTPUT.PUT_LINE('Hola ' || v_nombre);
+EXCEPTION
+  -- Aquí capturas errores
+  WHEN OTHERS THEN
+    DBMS_OUTPUT.PUT_LINE('Ocurrió un error');
+END;
+
+-- IF ELSE
+
+DECLARE
+  v_edad NUMBER := 20;
+BEGIN
+  IF v_edad >= 18 THEN
+    DBMS_OUTPUT.PUT_LINE('Mayor de edad');
+  ELSE
+    DBMS_OUTPUT.PUT_LINE('Menor de edad');
+  END IF;
+END;
+
+-- CASE
+declare
+    v_dia number := 3;
+begin
+    case v_dia
+        when 1 then dbms_output.put_line('Lunes');
+        when 2 then dbms_output.put_line('Martes');
+        else dbms_output.put_line('Otro dia');
+    end case;
+end;    
+
+-- for loop
+DECLARE
+    vr_init NUMBER := 1;
+    vr_limit NUMBER := 30;
+    i NUMBER;
+BEGIN
+    i := vr_init;
+    FOR x IN 1..vr_limit LOOP
+        dbms_output.put_line('Numero: ' || i);
+        i := i + 1;
+    END LOOP;
+END;
+
+
+
+-- while loop
+declare
+    vr_init number := 1;
+    vr_limit number := 30;
+    i number;
+begin
+    i := vr_init;
+    while i <= vr_limit loop
+        dbms_output.put_line('Numero: '||i);
+        i := i+1;
+    end loop;
+end;
+
+
+-- Manejo de sql en PL/SQL
+
+-- tabla y cargando datos
+create table empleados(
+    id number(2) generated always as identity primary key,
+    nombre varchar(20),
+    apellido varchar(20),
+    edad number(2)
+);
+
+insert into empleados(nombre, apellido, edad) values('kevin', 'steven', 20);
+select * from empleados order by id asc;
+
+-- SELECT, traer valores a variables
+
+declare
+    v_nombre empleados.nombre%type;
+begin
+    select nombre
+    into v_nombre
+    from empleados
+    where id = 3;
+
+    dbms_output.put_line('Empleado: '|| v_nombre);
+end;
+
+-- insert, update, delete
+
+declare
+    v_id empleados.id%type;
+    v_nombre empleados.nombre%type;
+    v_edad empleados.edad%type;
+begin 
+    --crear tabla
+    insert into empleados(nombre, apellido, edad) values('alejandro', 'magno', 40) returning id, nombre,edad into v_id, v_nombre, v_edad;
+    --dbms_output.put_line('ID generado: '||v_id ||' Nombre: '||v_nombre||' Edad: '||v_edad);
+    dbms_output.put_line( utl_lms.format_message(
+        'Id generado: %s, Nombre: %s, Edad: %s',
+        to_char(v_id), v_nombre, to_char(v_edad)
+    ));
+    -- actualizar
+    update empleados set edad = v_edad + 1 where id = v_id;
+    -- eliminar
+    --delete from empleados where id = v_id;
+
+    commit;
+end;
+
+
+--Cursores
+-- recorre varias filas
+
+-- cursor clasico
+declare
+    cursor c_empleados is
+        select id, nombre from empleados;
+    v_empleado c_empleados%rowtype;
+begin
+    open c_empleados;
+    loop
+        fetch c_empleados into v_empleado;
+        exit when c_empleados%notfound;
+        dbms_output.put_line('ID: '||v_empleado.id||', Nombre: '||v_empleado.nombre);
+    end loop;
+    close c_empleados;
+end;    
+/
+
+-- cursor con for
+declare
+    cursor c_empleados is select id,nombre, edad from empleados;
+begin
+    for v_empleado in c_empleados loop
+        dbms_output.put_line(
+            'ID: ' || to_char(v_empleado.id) ||
+            ', Nombre: ' || v_empleado.nombre ||
+            ', Edad: '||to_char(v_empleado.edad)
+        );
+    end loop;
+end;
+/
+
+
+-- Excepciones
+
+DECLARE
+  v_id EMPLEADOS.ID%TYPE;
+BEGIN
+  -- Insertar y capturar ID
+  INSERT INTO EMPLEADOS (NOMBRE, APELLIDO, EDAD)
+  VALUES ('alejandro', 'magno', 40)
+  RETURNING ID INTO v_id;
+
+  DBMS_OUTPUT.PUT_LINE('ID generado: ' || v_id);
+
+  -- Actualizar
+  UPDATE EMPLEADOS SET EDAD = 41 WHERE ID = v_id;
+
+  -- Eliminar
+  DELETE FROM EMPLEADOS WHERE ID = v_id;
+
+  COMMIT;
+EXCEPTION
+  WHEN OTHERS THEN
+    ROLLBACK;
+    DBMS_OUTPUT.PUT_LINE('Ocurrió un error, transacción revertida: ' || SQLERRM);
+END;
+
+
+
+
+
+
+/* OPERADORES
+    := asignacion
+    = comparacion
+    || concatenacion
+
+
+
+
+*/
+
+
+
+
+
+-- EJERCICIO #1
+
+/*
+En base a lo aprendido realizar lo siguiente:
+Crear un bloque anónimo manejando cursores que permita validar lo siguiente:
+La discoteca XYZ abre sus puertas, viernes y sabado el cual lleva el siguiente control:
+1. El ingreso a la disco siempre y cuando sea mayor de edad
+2. Cuando haya cumplido su aforo maximo de 50 personas presente el mensaje "ya no
+hay disponibilidad para su ingreso'"
+*/
+
+create table discoteca(
+    id number(2) generated always as identity primary key,
+    edad_ingreso number(2) not null,
+    max_personas number(2) not null
+);
+
+create table cliente(
+    id number(2) generated always as identity primary key,
+    edad number(2),
+    nombre varchar(20)
+);
+
+--registrar discoteca con sus restricciones
+insert into discoteca(edad_ingreso, max_personas) values(18, 50);
+
+select * from discoteca;
+
+
+-- simulando el sistema de ingreso a una discoteca
+
+declare
+    --excepciones personalizadas
+    e_edad_invalida exception;
+    e_cantidad_clientes_invalida exception;
+    --Registro nuevo cliente
+    v_nombre cliente.nombre%type := 'kevin steven';
+    v_edad cliente.edad%type := 19; -- ingreso de edad
+    v_cantidad_personas number := 49; -- cantidad de personas a registrar
+    --Discoteca
+    v_limite_edad discoteca.edad_ingreso%type;
+    v_cantidad_maxima_clientes discoteca.max_personas%type;
+begin 
+
+    --obtener las restricciones de la discoteca
+    select edad_ingreso, max_personas into v_limite_edad, v_cantidad_maxima_clientes
+        from discoteca where id = 1;
+
+    --validar limite edad
+    if v_edad < v_limite_edad then
+        raise e_edad_invalida;
+    end if;
+
+    --validar cantidad personas 
+    if v_cantidad_personas >= v_cantidad_maxima_clientes then
+        raise e_cantidad_clientes_invalida;
+    end if;
+
+    -- si ya paso los filtros
+    for i in 1..v_cantidad_personas loop
+        insert into cliente(nombre, edad) values(v_nombre||to_char(i), v_edad);
+    end loop;
+
+exception 
+    when e_edad_invalida then
+        dbms_output.put_line('La edad debe ser mayor a : 18, enviado: '||v_edad);
+    when e_cantidad_clientes_invalida then 
+        dbms_output.put_line('La cantidad maxima de personas es de : 50, enviado :'||v_cantidad_personas);
+end;
+
+-- mostrar clientes
+select * from cliente;
+
+-- eliminar clientes
+drop table cliente;
+
+
+
+
+
+
+
+
